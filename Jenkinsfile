@@ -35,24 +35,25 @@
 
 pipeline {
   agent {
-    // this image provides everything needed to run Cypress
-    docker {
-      image 'cypress/base:10'
-    }
+        node {
+            label 'master'
+            customWorkspace "${env.JOB_NAME}_${env.BUILD_NUMBER}"
+        }
   }
 
   stages {
     // first stage installs node dependencies and Cypress binary
     stage('UAT') {
+      agent { 
+        // this image provides everything needed to run Cypress
+        docker 'cypress/base:10'
+      }
       environment {
-        // we will be recordint test results and video on Cypress dashboard
+        // we will be recording test results and video on Cypress dashboard
         // to record we need to set an environment variable
         // we can load the record key variable from credentials store
         // see https://jenkins.io/doc/book/using/using-credentials/
         CYPRESS_RECORD_KEY = credentials('cypress')
-        // because parallel steps share the workspace they might race to delete
-        // screenshots and videos folders. Tell Cypress not to delete these folders
-        CYPRESS_trashAssetsBeforeRuns = 'false'
       }
       steps {
         // there a few default environment variables on Jenkins
